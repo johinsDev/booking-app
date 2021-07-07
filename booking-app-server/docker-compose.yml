@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  booking:
+    container_name: booking_server
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - ${PORT}:${PORT}
+      - 9229:9229
+    command: npm run start:dev
+    env_file:
+      - .env
+    networks:
+      - booking
+    depends_on:
+      - redis
+      - database
+  redis:
+    container_name: booking_redis
+    image: redis:5
+    networks:
+      - booking
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    environment:
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+  database:
+    container_name: postgres
+    image: postgres:12
+    networks:
+      - booking
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE}
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+networks:
+  booking:
+volumes:
+  pgdata:
